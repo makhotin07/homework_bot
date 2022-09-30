@@ -22,9 +22,9 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-PRACTICUM_TOKEN = os.getenv('y0_AgAAAABJVJRMAAYckQAAAADPQk31jiSRnbf3S4Kn8Dkhvm8n46Cbru4')
-TELEGRAM_TOKEN = os.getenv('5737703870:AAFfo_2qbmjchLB-Z3ZOBfcTNO_WZXcGqu8')
-TELEGRAM_CHAT_ID = os.getenv('308335172')
+PRACTICUM_TOKEN = os.getenv(PRACTICUM_TOKENG)
+TELEGRAM_TOKEN = os.getenv(TELEGRAM_TOKENG)
+TELEGRAM_CHAT_ID = os.getenv(TELEGRAM_CHAT_IDG)
 
 RETRY_TIME = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
