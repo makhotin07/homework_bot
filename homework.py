@@ -42,8 +42,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
-    """запрос к Яндексу, получает ответ от апи."""
-
+    """Запрос к Яндексу, получает ответ от апи."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     r = requests.get(ENDPOINT, headers=HEADERS, params=params)
@@ -52,7 +51,7 @@ def get_api_answer(current_timestamp):
         logging.error(
             f'Эндпоинт недоступен {ENDPOINT}. Статус код: {r.status_code}')
         raise Exception(
-            f'Эндпоинт недоступен {ENDPOINT}. Ошибка: {e}')
+            f'Эндпоинт недоступен {ENDPOINT}.')
 
     else:
         return r.json()
@@ -64,7 +63,7 @@ def check_response(response):
 
     if list_of_homeworks is None:
         logging.error(
-            f'В ответе сервера отсутствует ключ homeworks'
+            'В ответе сервера отсутствует ключ homeworks'
         )
         raise Exception
 
@@ -77,23 +76,27 @@ def check_response(response):
 
 def parse_status(homework):
     """Проверяет статус домашнего задания."""
-    document_status = {'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
-                       'reviewing': 'Работа взята на проверку ревьюером.',
-                       'rejected': 'Работа проверена: у ревьюера есть замечания.'}
+    document_status = {
+        'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
+        'reviewing': 'Работа взята на проверку ревьюером.',
+        'rejected': 'Работа проверена: у ревьюера есть замечания.'
+    }
     try:
         homework_name = homework.get('homework_name')
         homework_status = homework.get('status')
 
         if homework_status not in document_status:
             logging.error(
-                f'недокументированный статус домашней работы: {homework_status}'
+                f'недокументированный статус домашней работы: '
+                f'{homework_status}'
             )
     except Exception as e:
         logging.error(
             f'Возникла ошибка при парсинге ответа: {e}'
         )
     else:
-        return f'Изменился статус проверки работы "{homework_name}". {document_status[homework_status]}'
+        return f'Изменился статус проверки работы ' \
+               f'"{homework_name}". {document_status[homework_status]}'
 
 
 def check_tokens():
