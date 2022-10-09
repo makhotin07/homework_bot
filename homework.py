@@ -1,5 +1,3 @@
-import datetime
-import json
 import logging
 import os
 import time
@@ -33,7 +31,7 @@ logging.basicConfig(
 
 
 def send_message(bot, message):
-    """Отправляет сообщение в телеграм"""
+    """Отправляет сообщение в телеграм."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logging.info(
@@ -44,7 +42,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
-    """запрос к Яндексу, получает ответ от апи"""
+    """запрос к Яндексу, получает ответ от апи."""
 
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
@@ -61,7 +59,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """Проверяет корректность ответа API Яндекс практикума"""
+    """Проверяет корректность ответа API Яндекс практикума."""
     list_of_homeworks = response['homeworks']
 
     if list_of_homeworks is None:
@@ -78,7 +76,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Проверяет статус домашнего задания"""
+    """Проверяет статус домашнего задания."""
     document_status = {'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
                        'reviewing': 'Работа взята на проверку ревьюером.',
                        'rejected': 'Работа проверена: у ревьюера есть замечания.'}
@@ -99,7 +97,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверяет наличие токена и чат ID телеграмма"""
+    """Проверяет наличие токена и чат ID телеграмма."""
     if PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID:
         return True
     else:
