@@ -39,7 +39,6 @@ logging.basicConfig(
 
 def send_message(bot, message):
     """Отправляет сообщение в телеграм."""
-
     logging.info(f'Начали отправку сообщение {message}')
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
@@ -53,7 +52,6 @@ def send_message(bot, message):
 
 def get_api_answer(current_timestamp):
     """Запрос к Яндексу, получает ответ от апи."""
-
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
 
@@ -78,7 +76,6 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """Проверяет корректность ответа API Яндекс практикума."""
-
     if not isinstance(response, dict):
         if isinstance(response, list):
             response = response[0]
@@ -107,7 +104,6 @@ def check_response(response):
 
 def parse_status(homework):
     """Проверяет статус домашнего задания."""
-
     if not isinstance(homework, dict):
         if isinstance(homework, list):
             homework = homework[0]
@@ -129,14 +125,12 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверяет наличие токена и чат ID телеграмма."""
-
     list_of_tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     return all(list_of_tokens)
 
 
 def main():
     """Основная логика работы бота."""
-
     if not check_tokens():
         logging.critical('Отсутствует одна или более переменных окружения')
         sys.exit(
