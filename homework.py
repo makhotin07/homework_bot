@@ -8,7 +8,8 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
-from exceptions import CannotSendMessageToTelegram, CannotSendRequestToServer, \
+from exceptions import CannotSendMessageToTelegram, \
+    CannotSendRequestToServer, \
     EndpointNotAvailable, ResponseIsNotDictOrList, ServerNotSentKeyDate, \
     ServerNotSentKeyHomeworks, ServerNotSentListHomeworks, \
     NotDocumentedStatusHomework, ServerSentEmptyListHomeworks, \
