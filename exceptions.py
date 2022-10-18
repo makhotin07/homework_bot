@@ -1,8 +1,8 @@
-class ToSendInTelegram(Exception):
+class NotSendInTelegram(Exception):
 	pass
 
 
-class CannotSendMessageToTelegram(Exception):
+class CannotSendMessageToTelegram(NotSendInTelegram):
 	pass
 
 
@@ -10,23 +10,15 @@ class CannotSendRequestToServer(Exception):
 	pass
 
 
-class EndpointNotAvailable(ToSendInTelegram):
+class EndpointNotAvailable(Exception):
 	pass
 
 
-class ResponseIsNotDictOrList(TypeError):
+class IsNotDict(TypeError):
 	pass
 
 
-class HomeworkIsNotDictOrList(TypeError):
-	pass
-
-
-class ServerNotSentKeyDate(KeyError):
-	pass
-
-
-class ServerNotSentKeyHomeworks(KeyError):
+class ServerNotSentKey(KeyError):
 	pass
 
 
@@ -34,13 +26,5 @@ class ServerNotSentListHomeworks(TypeError):
 	pass
 
 
-class NotDocumentedStatusHomework(KeyError, ToSendInTelegram):
-	pass
-
-
-class ServerSentEmptyListHomeworks(Exception):
-	pass
-
-
-class SameMessageNotSending(Exception):
+class NotDocumentedStatusHomework(KeyError):
 	pass

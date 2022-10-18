@@ -8,12 +8,11 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
-from exceptions import CannotSendMessageToTelegram, \
-    CannotSendRequestToServer, \
-    EndpointNotAvailable, ResponseIsNotDictOrList, ServerNotSentKeyDate, \
-    ServerNotSentKeyHomeworks, ServerNotSentListHomeworks, \
-    NotDocumentedStatusHomework, ServerSentEmptyListHomeworks, \
-    ToSendInTelegram, HomeworkIsNotDictOrList
+from exceptions import (CannotSendMessageToTelegram, CannotSendRequestToServer,
+                        EndpointNotAvailable, IsNotDict,
+                        NotDocumentedStatusHomework,
+                        NotSendInTelegram, ServerNotSentKey,
+                        ServerNotSentListHomeworks)
 
 load_dotenv()
 
@@ -33,13 +32,14 @@ HOMEWORK_STATUSES = {
 
 logging.basicConfig(
     level=logging.DEBUG,
-    filename=os.path.join(os.path.dirname(__file__), 'main.log'),
-    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s'
+    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+    handlers=[logging.StreamHandler()]
 )
 
 
-def send_message(bot, message):
+def send_message(bot: telegram.Bot, message: str) -> None:
     """Отправляет сообщение в телеграм."""
+
     logging.info(f'Начали отправку сообщение {message}')
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
@@ -51,8 +51,9 @@ def send_message(bot, message):
             f'Сообщение в Telegram отправлено: {message}')
 
 
-def get_api_answer(current_timestamp):
+def get_api_answer(current_timestamp: int) -> dict:
     """Запрос к Яндексу, получает ответ от апи."""
+
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
 
@@ -75,24 +76,22 @@ def get_api_answer(current_timestamp):
         return response.json()
 
 
-def check_response(response):
+def check_response(response: dict) -> list:
     """Проверяет корректность ответа API Яндекс практикума."""
-    if not isinstance(response, dict):
-        if isinstance(response, list):
-            response = response[0]
-        else:
-            raise ResponseIsNotDictOrList(
-                'Response не словарь и не список.'
-            )
 
-    if response.get('current_date') is None:
-        raise ServerNotSentKeyDate('current_date is None')
+    if not isinstance(response, dict):
+        raise IsNotDict(
+            'Response не словарь.'
+        )
 
     current_date = response.get('current_date')
+    if current_date is None:
+        raise ServerNotSentKey('current_date is None')
+
     list_of_homeworks = response.get('homeworks')
 
-    if response['homeworks'] is None:
-        raise ServerNotSentKeyHomeworks(
+    if list_of_homeworks is None:
+        raise ServerNotSentKey(
             'В ответе сервера отсутствует ключ homeworks'
         )
 
@@ -100,18 +99,16 @@ def check_response(response):
         raise ServerNotSentListHomeworks(
             'Содержимое ключа homeworks не является списком')
 
-    return list_of_homeworks, current_date
+    return list_of_homeworks
 
 
-def parse_status(homework):
+def parse_status(homework: dict) -> str:
     """Проверяет статус домашнего задания."""
+
     if not isinstance(homework, dict):
-        if isinstance(homework, list):
-            homework = homework[0]
-        else:
-            raise HomeworkIsNotDictOrList(
-                'Response не словарь и не список.'
-            )
+        raise IsNotDict(
+            'Response не словарь.'
+        )
 
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
@@ -124,14 +121,16 @@ def parse_status(homework):
             f'"{homework_name}". {HOMEWORK_STATUSES[homework_status]}')
 
 
-def check_tokens():
+def check_tokens() -> bool:
     """Проверяет наличие токена и чат ID телеграмма."""
-    list_of_tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    return all(list_of_tokens)
+
+    tuple_of_tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
+    return all(tuple_of_tokens)
 
 
-def main():
+def main() -> None:
     """Основная логика работы бота."""
+
     if not check_tokens():
         logging.critical('Отсутствует одна или более переменных окружения')
         sys.exit(
@@ -144,27 +143,25 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            list_of_homeworks, current_timestamp = check_response(response)
+            list_of_homeworks = check_response(response)
 
             if not list_of_homeworks:
-                raise ServerSentEmptyListHomeworks(
-                    'Список homeworks пустой')
-
-            message = parse_status(list_of_homeworks[0])
+                message = 'Список homeworks пустой'
+            else:
+                message = parse_status(list_of_homeworks[0])
             if message != last_message:
                 send_message(bot, message)
-            current_timestamp = current_timestamp
-
-        except ToSendInTelegram as error:
+            current_timestamp = response.get('current_date')
+        except NotSendInTelegram as error:
+            logging.error(error, exc_info=error)
+        except Exception as error:
             message = f'Сбой в работе программы: {error}'
             if error != last_error:
                 send_message(bot, message)
                 last_error = error
-            logging.error(error, exc_info=True)
-        except Exception as error:
-            logging.error(error, exc_info=True)
+            logging.error(error, exc_info=error)
         else:
-            logging.info('Успешно произвели операцию')
+            logging.info('Успешно отправили информацию в телеграм')
         finally:
             logging.info('Цикл закончен')
             time.sleep(RETRY_TIME)
