@@ -33,12 +33,13 @@ HOMEWORK_STATUSES = {
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-    handlers=[logging.StreamHandler()]
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
 
 
 def send_message(bot: telegram.Bot, message: str) -> None:
     """Отправляет сообщение в телеграм."""
+
     logging.info(f'Начали отправку сообщение {message}')
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
@@ -52,6 +53,7 @@ def send_message(bot: telegram.Bot, message: str) -> None:
 
 def get_api_answer(current_timestamp: int) -> dict:
     """Запрос к Яндексу, получает ответ от апи."""
+
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
 
@@ -76,6 +78,7 @@ def get_api_answer(current_timestamp: int) -> dict:
 
 def check_response(response: dict) -> list:
     """Проверяет корректность ответа API Яндекс практикума."""
+
     if not isinstance(response, dict):
         raise IsNotDict(
             'Response не словарь.'
@@ -101,6 +104,7 @@ def check_response(response: dict) -> list:
 
 def parse_status(homework: dict) -> str:
     """Проверяет статус домашнего задания."""
+
     if not isinstance(homework, dict):
         raise IsNotDict(
             'Response не словарь.'
@@ -110,7 +114,7 @@ def parse_status(homework: dict) -> str:
     homework_status = homework.get('status')
     if homework_status not in HOMEWORK_STATUSES:
         raise NotDocumentedStatusHomework(
-            f'недокументированный статус домашней работы: '
+            'недокументированный статус домашней работы: '
             f'{homework_status}'
         )
     return ('Изменился статус проверки работы '
@@ -119,12 +123,14 @@ def parse_status(homework: dict) -> str:
 
 def check_tokens() -> bool:
     """Проверяет наличие токена и чат ID телеграмма."""
+
     tuple_of_tokens = (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
     return all(tuple_of_tokens)
 
 
 def main() -> None:
     """Основная логика работы бота."""
+
     if not check_tokens():
         logging.critical('Отсутствует одна или более переменных окружения')
         sys.exit(
@@ -145,6 +151,11 @@ def main() -> None:
                 message = parse_status(list_of_homeworks[0])
             if message != last_message:
                 send_message(bot, message)
+                last_message = message
+            else:
+                logging.info(
+                    'Сообщение не изменилось'
+                    ' и не было отправлено в телеграм.')
             current_timestamp = response.get('current_date')
         except NotSendInTelegram as error:
             logging.error(error, exc_info=error)
@@ -154,8 +165,6 @@ def main() -> None:
                 send_message(bot, message)
                 last_error = error
             logging.error(error, exc_info=error)
-        else:
-            logging.info('Успешно отправили информацию в телеграм')
         finally:
             logging.info('Цикл закончен')
             time.sleep(RETRY_TIME)
